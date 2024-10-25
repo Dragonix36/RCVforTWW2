@@ -51,20 +51,18 @@
     <script>
         // Initialize Firebase
         const firebaseConfig = {
-
-  apiKey: "AIzaSyA8nVq5JxvcxSaOwIrD4g98VB3L5RJR4FU",
-  authDomain: "votedata-bce78.firebaseapp.com",
-  projectId: "votedata-bce78",
-  storageBucket: "votedata-bce78.appspot.com",
-  messagingSenderId: "728793056502",
-  appId: "1:728793056502:web:cc233fa1408f53baf6d8d7",
-  measurementId: "G-PX8GWBTDT1"
-};
-
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Vote storage and display
+        // Submit vote function
         async function submitVote() {
             const name = document.getElementById('name').value;
             const rank2 = document.getElementById('rank2').value;
@@ -83,6 +81,7 @@
             }
         }
 
+        // Function to calculate and display percentages
         function updatePercentages(snapshot) {
             const counts = { rank2: { 'Candidate A': 0, 'Candidate B': 0, 'Candidate C': 0 }, rank3: { 'Candidate A': 0, 'Candidate B': 0, 'Candidate C': 0 }};
             let totalVotes = 0;
@@ -95,17 +94,21 @@
             });
 
             const percentagesList = document.getElementById('percentagesList');
-            percentagesList.innerHTML = `
-                <div><strong>2nd Choice:</strong></div>
-                <div>Candidate A: ${(counts.rank2['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
-                <div>Candidate B: ${(counts.rank2['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
-                <div>Candidate C: ${(counts.rank2['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
-                
-                <div><strong>3rd Choice:</strong></div>
-                <div>Candidate A: ${(counts.rank3['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
-                <div>Candidate B: ${(counts.rank3['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
-                <div>Candidate C: ${(counts.rank3['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
-            `;
+            if (totalVotes > 0) {
+                percentagesList.innerHTML = `
+                    <div><strong>2nd Choice:</strong></div>
+                    <div>Candidate A: ${(counts.rank2['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
+                    <div>Candidate B: ${(counts.rank2['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
+                    <div>Candidate C: ${(counts.rank2['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
+                    
+                    <div><strong>3rd Choice:</strong></div>
+                    <div>Candidate A: ${(counts.rank3['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
+                    <div>Candidate B: ${(counts.rank3['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
+                    <div>Candidate C: ${(counts.rank3['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
+                `;
+            } else {
+                percentagesList.innerHTML = "No votes have been cast yet.";
+            }
         }
 
         // Real-time listener for Firestore changes
