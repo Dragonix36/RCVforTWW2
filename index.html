@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranked Choice Voting System</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f4f4f4; }
+        .container { max-width: 500px; width: 100%; padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; }
+        button { margin-top: 15px; cursor: pointer; background-color: #4CAF50; color: white; border: none; }
+        .results { margin-top: 20px; padding: 10px; background-color: #e9e9e9; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ranked Choice Voting System</h2>
+        <form id="voteForm">
+            <label for="name">Enter Your Name:</label>
+            <input type="text" id="name" required>
+
+            <label for="rank2">2nd Choice:</label>
+            <select id="rank2" required>
+                <option value="" disabled selected>Select your 2nd choice</option>
+                <option value="Candidate A">Candidate A</option>
+                <option value="Candidate B">Candidate B</option>
+                <option value="Candidate C">Candidate C</option>
+            </select>
+
+            <label for="rank3">3rd Choice:</label>
+            <select id="rank3" required>
+                <option value="" disabled selected>Select your 3rd choice</option>
+                <option value="Candidate A">Candidate A</option>
+                <option value="Candidate B">Candidate B</option>
+                <option value="Candidate C">Candidate C</option>
+            </select>
+
+            <button type="button" onclick="submitVote()">Submit Vote</button>
+        </form>
+
+        <div class="results">
+            <h3>Vote Percentages</h3>
+            <div id="percentagesList">Percentages will display here once votes are cast.</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+
+  apiKey: "AIzaSyA8nVq5JxvcxSaOwIrD4g98VB3L5RJR4FU",
+  authDomain: "votedata-bce78.firebaseapp.com",
+  projectId: "votedata-bce78",
+  storageBucket: "votedata-bce78.appspot.com",
+  messagingSenderId: "728793056502",
+  appId: "1:728793056502:web:cc233fa1408f53baf6d8d7",
+  measurementId: "G-PX8GWBTDT1"
+};
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Vote storage and display
+        async function submitVote() {
+            const name = document.getElementById('name').value;
+            const rank2 = document.getElementById('rank2').value;
+            const rank3 = document.getElementById('rank3').value;
+
+            if (!name || !rank2 || !rank3) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            try {
+                await db.collection("votes").add({ name, rank2, rank3 });
+                document.getElementById('voteForm').reset();
+            } catch (error) {
+                console.error("Error submitting vote:", error);
+            }
+        }
+
+        function updatePercentages(snapshot) {
+            const counts = { rank2: { 'Candidate A': 0, 'Candidate B': 0, 'Candidate C': 0 }, rank3: { 'Candidate A': 0, 'Candidate B': 0, 'Candidate C': 0 }};
+            let totalVotes = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                counts.rank2[data.rank2]++;
+                counts.rank3[data.rank3]++;
+                totalVotes++;
+            });
+
+            const percentagesList = document.getElementById('percentagesList');
+            percentagesList.innerHTML = `
+                <div><strong>2nd Choice:</strong></div>
+                <div>Candidate A: ${(counts.rank2['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
+                <div>Candidate B: ${(counts.rank2['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
+                <div>Candidate C: ${(counts.rank2['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
+                
+                <div><strong>3rd Choice:</strong></div>
+                <div>Candidate A: ${(counts.rank3['Candidate A'] / totalVotes * 100).toFixed(2)}%</div>
+                <div>Candidate B: ${(counts.rank3['Candidate B'] / totalVotes * 100).toFixed(2)}%</div>
+                <div>Candidate C: ${(counts.rank3['Candidate C'] / totalVotes * 100).toFixed(2)}%</div>
+            `;
+        }
+
+        // Real-time listener for Firestore changes
+        db.collection("votes").onSnapshot(updatePercentages);
+    </script>
+</body>
+</html>
